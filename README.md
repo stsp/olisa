@@ -35,3 +35,9 @@ before audio can play).
 - `js/music.js` — chiptune engine, the tune, thunder
 - `js/main.js` — input, timing, start-up
 - `js/rng.js` — seeded random numbers so the scene looks the same every run
+
+## Deploy
+
+`.github/workflows/deploy.yml` publishes the page to GitHub Pages on every push to the
+default branch (or manually via "Run workflow"). One-time setup: in the repository
+**Settings → Pages**, set *Source* to **GitHub Actions**.
