@@ -392,21 +392,21 @@ class Chiptune {
 
   // ---- game-over sound effects ---------------------------------------------------------
   // pitchfork swinging through the air: a band-passed noise sweep
-  whoosh(delay = 0) {
+  whoosh(delay = 0, length = 1.1) {
     if (!this.ctx) return;
     const ctx = this.ctx, t = ctx.currentTime + delay;
     const src = ctx.createBufferSource(); src.buffer = this.noise;
     const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 1.5;
-    f.frequency.setValueAtTime(300, t); f.frequency.exponentialRampToValueAtTime(3200, t + 1.1);
-    const g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.5, t + 0.9); g.gain.linearRampToValueAtTime(0, t + 1.25);
-    src.connect(f).connect(g).connect(this.thunderBus); src.start(t, 0.3); src.stop(t + 1.3);
+    f.frequency.setValueAtTime(300, t); f.frequency.exponentialRampToValueAtTime(3200, t + length);
+    const g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.5, t + length * 0.8); g.gain.linearRampToValueAtTime(0, t + length * 1.15);
+    src.connect(f).connect(g).connect(this.thunderBus); src.start(t, 0.3); src.stop(t + length * 1.2);
   }
   // the bonk: a hollow thud plus the metallic ring of the tines
-  bonk() {
+  bonk(pitch = 1) {
     if (!this.ctx) return;
     const ctx = this.ctx, t = ctx.currentTime;
     const o = ctx.createOscillator(), g = ctx.createGain();
-    o.type = 'sine'; o.frequency.setValueAtTime(220, t); o.frequency.exponentialRampToValueAtTime(48, t + 0.25);
+    o.type = 'sine'; o.frequency.setValueAtTime(220 * pitch, t); o.frequency.exponentialRampToValueAtTime(48 * pitch, t + 0.25);
     g.gain.setValueAtTime(1, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
     o.connect(g).connect(this.thunderBus); o.start(t); o.stop(t + 0.5);
     const n = ctx.createBufferSource(); n.buffer = this.noise;
@@ -419,6 +419,42 @@ class Chiptune {
       rg.gain.setValueAtTime(0.12 / (i + 1), t + 0.01); rg.gain.exponentialRampToValueAtTime(0.0005, t + 1.4);
       r.connect(rg).connect(this.master); r.start(t + 0.01); r.stop(t + 1.5);
     });
+  }
+  // a jaunty whistled tune (original): a breathy sine with vibrato, looped for the approach
+  whistle(seconds) {
+    if (!this.ctx) return;
+    const ctx = this.ctx, t0 = ctx.currentTime + 0.05;
+    const tune = [['G5', 1], ['B5', 1], ['D6', 2], ['B5', 1], ['G5', 1], ['A5', 2], ['B5', 1], ['C6', 1], ['B5', 1], ['A5', 1], ['G5', 3], ['-', 1],
+                  ['D6', 1], ['D6', 1], ['E6', 2], ['D6', 1], ['B5', 1], ['G5', 2], ['A5', 1], ['B5', 1], ['A5', 1], ['F#5', 1], ['G5', 3], ['-', 1]];
+    const step = 0.17; let t = t0;
+    while (t < t0 + seconds) {
+      for (const [n, d] of tune) {
+        if (t >= t0 + seconds) break;
+        const dur = d * step;
+        if (n !== '-') {
+          const o = ctx.createOscillator(), g = ctx.createGain(), lfo = ctx.createOscillator(), lg = ctx.createGain();
+          o.type = 'sine'; const hz = midiToHz(noteToMidi(n));
+          o.frequency.setValueAtTime(hz * 0.97, t); o.frequency.exponentialRampToValueAtTime(hz, t + 0.04);
+          lfo.frequency.value = 5.5; lg.gain.value = hz * 0.012; lfo.connect(lg).connect(o.frequency);
+          g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.22, t + 0.03); g.gain.setValueAtTime(0.22, t + dur - 0.05); g.gain.linearRampToValueAtTime(0, t + dur);
+          o.connect(g).connect(this.master); o.start(t); o.stop(t + dur + 0.02); lfo.start(t); lfo.stop(t + dur + 0.02);
+          // a little breath noise under each note
+          const nz = ctx.createBufferSource(); nz.buffer = this.noise; const nf = ctx.createBiquadFilter(); nf.type = 'bandpass'; nf.frequency.value = hz * 2; nf.Q.value = 8;
+          const ng = ctx.createGain(); ng.gain.setValueAtTime(0.05, t); ng.gain.linearRampToValueAtTime(0, t + dur);
+          nz.connect(nf).connect(ng).connect(this.master); nz.start(t, Math.random()); nz.stop(t + dur);
+        }
+        t += dur;
+      }
+    }
+  }
+  // the intruder's puzzled "huh?": a rising two-note squeak
+  huh() {
+    if (!this.ctx) return;
+    const ctx = this.ctx, t = ctx.currentTime;
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.setPeriodicWave(this.waves.pulse25); o.frequency.setValueAtTime(330, t); o.frequency.setValueAtTime(330, t + 0.12); o.frequency.exponentialRampToValueAtTime(520, t + 0.3);
+    g.gain.setValueAtTime(0.12, t); g.gain.setValueAtTime(0.12, t + 0.3); g.gain.linearRampToValueAtTime(0, t + 0.4);
+    o.connect(g).connect(this.tone); o.start(t); o.stop(t + 0.42);
   }
   // sneaking up: staccato tiptoe notes on the bass voice
   tiptoe(seconds) {
