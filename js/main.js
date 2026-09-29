@@ -4,6 +4,7 @@
   const overlay = document.getElementById('overlay');
   const scene = new Scene(canvas);
   const music = new Chiptune();
+  scene.gameOver = new GameOver(scene, music);
   let started = false, last = 0, muted = false;
 
   scene.storm.onThunder = (delay, strength) => { if (started && !muted) music.thunder(delay, strength); };
@@ -31,11 +32,11 @@
     if (k === 's') { scene.scanlines = !scene.scanlines; return; }
     if (k === 'f') { (document.fullscreenElement ? document.exitFullscreen() : document.getElementById('stage').requestFullscreen()); return; }
     if (e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Meta') return;
-    if (!scene.begin) { scene.pressBegin(); music.jingle(); music.thunder(0.05, 0.8); }
+    scene.gameOver.start();
   }
 
   overlay.addEventListener('click', start);
-  canvas.addEventListener('click', () => { if (started && !scene.begin) { scene.pressBegin(); music.jingle(); } });
+  canvas.addEventListener('click', () => { if (started) scene.gameOver.start(); });
   window.addEventListener('keydown', onKey);
 
   const go = () => requestAnimationFrame(frame);

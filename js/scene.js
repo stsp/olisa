@@ -20,7 +20,7 @@ class Scene {
     this.ghost = { x: 362, y: 442 };
     this.credits = this.makeCredits();
     this.credit = { index: 0, t: 0 };
-    this.begin = null;                    // "press any key" animation state
+    this.gameOver = null;                 // set by main.js
     this.windows = [
       [445, 200, 10, 22], [445, 292, 10, 22], [322, 222, 8, 18], [322, 304, 8, 18],
       [544, 262, 8, 18], [544, 334, 8, 18], [208, 332, 7, 16], [250, 398, 8, 16], [622, 398, 8, 16],
@@ -310,7 +310,7 @@ class Scene {
     c.fillStyle = g; c.fill(arch(0));
     c.shadowBlur = 0;
     c.fillStyle = '#2a0008'; c.fill(arch(6));
-    if (!this.begin) { c.save(); c.clip(arch(6)); this.drawGhost(c, this.time); c.restore(); }
+    if (!(this.gameOver && this.gameOver.active)) { c.save(); c.clip(arch(6)); this.drawGhost(c, this.time); c.restore(); }
     // frame studs
     c.fillStyle = '#ff6060';
     for (let i = 0; i < 5; i++) { c.fillRect(x + 2, top + 26 + i * 9, 2, 2); c.fillRect(x + w - 4, top + 26 + i * 9, 2, 2); }
@@ -329,10 +329,7 @@ class Scene {
       if (d.y > H + 30) { d.y = -30; d.x = this.rng.range(0, W + 80); }
       if (d.x < -20) d.x += W + 40;
     }
-    if (this.begin) {
-      this.begin.t += dt;
-      if (this.begin.t > 4.6) this.begin = null;
-    }
+    if (this.gameOver) this.gameOver.update(dt);
   }
 
   draw() {
@@ -383,7 +380,7 @@ class Scene {
     for (const d of this.rain) { c.moveTo(d.x, d.y); c.lineTo(d.x - d.len * 0.09, d.y + d.len); }
     c.stroke();
     // text
-    if (this.begin) this.drawBegin(c);
+    if (this.gameOver && this.gameOver.active) this.gameOver.draw(c);
     else {
       const scr = this.credits[this.credit.index];
       const ct = this.credit.t, fade = 0.5;
@@ -399,22 +396,4 @@ class Scene {
     if (this.scanlines) { c.fillStyle = this.scanPattern; c.fillRect(0, 0, W, H); }
   }
 
-  // Key pressed: a flash, the ghost swoops out of the gate towards the viewer, and a short card.
-  drawBegin(c) {
-    const b = this.begin, t = b.t;
-    if (t < 0.25) { c.fillStyle = `rgba(255,255,255,${1 - t / 0.25})`; c.fillRect(0, 0, W, H); }
-    const k = Math.min(1, t / 1.6);
-    const ease = 1 - Math.pow(1 - k, 3);
-    const gx = this.ghost.x + (W / 2 - this.ghost.x) * ease, gy = this.ghost.y + (H * 0.74 - this.ghost.y) * ease;
-    this.drawGhost(c, this.time * 3, 1 + ease * 9, gx, gy);
-    if (t > 1.4) {
-      const a = Math.min(1, (t - 1.4) / 0.5) * Math.min(1, (4.6 - t) / 0.6);
-      c.fillStyle = `rgba(0,0,0,${0.55 * a})`; c.fillRect(0, 0, W, H);
-      c.globalAlpha = a;
-      this.drawText(c, 'SHILMOORE CASTLE AWAITS', W / 2, 150, PAL.yellow, '700 44px Cinzel, Georgia, serif', 10);
-      this.drawText(c, 'THIS REMAKE COVERS THE INTRO ONLY', W / 2, 212, PAL.cyan, '700 22px Cinzel, Georgia, serif', 6);
-      c.globalAlpha = 1;
-    }
-  }
-  pressBegin() { if (!this.begin) this.begin = { t: 0 }; }
 }

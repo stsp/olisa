@@ -25,7 +25,7 @@ before audio can play).
 
 | Key | Action |
 | --- | --- |
-| any | start the intro / "press any key to begin" |
+| any | start the intro; once running, plays the game-over sequence (rainbow tunnel, GAME OVER, the ghost bonks the intruder with a garden pitchfork) |
 | M | mute music |
 | S | toggle scanlines |
 | F | fullscreen |
@@ -33,7 +33,8 @@ before audio can play).
 ## Layout
 
 - `js/scene.js` — procedural artwork and the credits sequence
-- `js/music.js` — chiptune engine, the tune, thunder
+- `js/gameover.js` — the game-over sequence
+- `js/music.js` — chiptune engine, the tune, thunder and sound effects
 - `js/main.js` — input, timing, start-up
 - `js/rng.js` — seeded random numbers so the scene looks the same every run
 

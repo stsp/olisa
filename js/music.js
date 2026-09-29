@@ -380,10 +380,73 @@ class Chiptune {
     sub.connect(sg).connect(this.thunderBus); sub.start(when); sub.stop(when + 3);
   }
 
-  // short "begin" jingle when a key is pressed
-  jingle() {
+  pause() {
+    this.stop();
+    if (this.tone) this.tone.frequency.setTargetAtTime(200, this.ctx.currentTime, 0.15);   // muffle what is already queued
+  }
+  resume() {
     if (!this.ctx) return;
-    const t = this.ctx.currentTime + 0.02;
-    ['E5', 'B5', 'E6', 'G6'].forEach((n, i) => this.playNote('lead', noteToMidi(n), t + i * 0.07, 0.35 - i * 0.05));
+    this.tone.frequency.setValueAtTime(7000, this.ctx.currentTime);
+    this.start();
+  }
+
+  // ---- game-over sound effects ---------------------------------------------------------
+  // pitchfork swinging through the air: a band-passed noise sweep
+  whoosh(delay = 0) {
+    if (!this.ctx) return;
+    const ctx = this.ctx, t = ctx.currentTime + delay;
+    const src = ctx.createBufferSource(); src.buffer = this.noise;
+    const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 1.5;
+    f.frequency.setValueAtTime(300, t); f.frequency.exponentialRampToValueAtTime(3200, t + 1.1);
+    const g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.5, t + 0.9); g.gain.linearRampToValueAtTime(0, t + 1.25);
+    src.connect(f).connect(g).connect(this.thunderBus); src.start(t, 0.3); src.stop(t + 1.3);
+  }
+  // the bonk: a hollow thud plus the metallic ring of the tines
+  bonk() {
+    if (!this.ctx) return;
+    const ctx = this.ctx, t = ctx.currentTime;
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = 'sine'; o.frequency.setValueAtTime(220, t); o.frequency.exponentialRampToValueAtTime(48, t + 0.25);
+    g.gain.setValueAtTime(1, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+    o.connect(g).connect(this.thunderBus); o.start(t); o.stop(t + 0.5);
+    const n = ctx.createBufferSource(); n.buffer = this.noise;
+    const nf = ctx.createBiquadFilter(); nf.type = 'lowpass'; nf.frequency.value = 900;
+    const ng = ctx.createGain(); ng.gain.setValueAtTime(0.8, t); ng.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+    n.connect(nf).connect(ng).connect(this.thunderBus); n.start(t, 1); n.stop(t + 0.15);
+    [1720, 2580, 3410, 4300].forEach((hz, i) => {
+      const r = ctx.createOscillator(), rg = ctx.createGain();
+      r.type = 'triangle'; r.frequency.value = hz * (1 + i * 0.003);
+      rg.gain.setValueAtTime(0.12 / (i + 1), t + 0.01); rg.gain.exponentialRampToValueAtTime(0.0005, t + 1.4);
+      r.connect(rg).connect(this.master); r.start(t + 0.01); r.stop(t + 1.5);
+    });
+  }
+  // sneaking up: staccato tiptoe notes on the bass voice
+  tiptoe(seconds) {
+    if (!this.ctx) return;
+    const t0 = this.ctx.currentTime, step = 0.32, n = Math.floor(seconds / step);
+    const pat = ['E3', 'G3', 'B3', 'G3'];
+    for (let i = 0; i < n; i++) this.playNote('bass', noteToMidi(pat[i % 4]) + (i % 8 >= 4 ? 1 : 0), t0 + i * step, 0.09);
+  }
+  // rainbow tunnel: a falling siren of beeper notes, like the Spectrum's attribute-flash screens
+  tunnel(seconds) {
+    if (!this.ctx) return;
+    const ctx = this.ctx, t0 = ctx.currentTime;
+    const step = 0.075, n = Math.floor(seconds / step);
+    for (let i = 0; i < n; i++) {
+      const midi = 88 - (i % 16) * 2 - Math.floor(i / 16) * 3;
+      this.playNote('arp', midi, t0 + i * step, step * 0.9);
+      if (i % 4 === 0) this.playNote('bass', midi - 24, t0 + i * step, step * 3);
+    }
+  }
+  // final red screen: a low minor chord that slowly dies
+  gameOverChord() {
+    if (!this.ctx) return;
+    const ctx = this.ctx, t = ctx.currentTime;
+    ['E2', 'B2', 'E3', 'G3'].forEach((n, i) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.setPeriodicWave(this.waves.pulse25); o.frequency.value = midiToHz(noteToMidi(n));
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.16 - i * 0.02, t + 0.4 + i * 0.15); g.gain.exponentialRampToValueAtTime(0.001, t + 3.8);
+      o.connect(g).connect(this.tone); o.start(t); o.stop(t + 4);
+    });
   }
 }
