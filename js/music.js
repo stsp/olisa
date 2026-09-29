@@ -17,77 +17,186 @@ const CH = {
   B7: ['B2', [0, 4, 7, 10]], G: ['G2', [0, 4, 7]], Am: ['A2', [0, 3, 7]], Em1: ['E2', [0, 3, 7]],
 };
 // Melody: "note:steps" tokens, "-" = rest.  Each bar is 16 steps (16th notes).
-const SONG = [
-  // ---- A: brooding theme --------------------------------------------------------------
-  { chord: 'Em', lead: 'E5:2 G5:2 B5:3 A5:1 G5:2 F#5:2 E5:4' },
-  { chord: 'C',  lead: 'C6:2 B5:2 A5:4 G5:2 A5:2 E5:4' },
-  { chord: 'D',  lead: 'F#5:2 A5:2 D6:4 C#6:1 D6:1 A5:2 F#5:4' },
-  { chord: 'Bm', lead: 'B5:6 A5:2 F#5:4 D5:4' },
-  { chord: 'Em', lead: 'E5:2 G5:2 B5:3 A5:1 G5:2 F#5:2 E5:4' },
-  { chord: 'C',  lead: 'C6:2 B5:2 A5:4 G5:2 A5:2 B5:4' },
-  { chord: 'D',  lead: 'D6:2 C#6:2 D6:2 E6:2 F#6:4 D6:4' },
-  { chord: 'B7', lead: 'D#6:2 B5:2 F#5:4 D#5:2 F#5:2 B5:4' },
-  // ---- B: answer, brighter then falling back ----------------------------------------
-  { chord: 'G',  lead: 'G5:2 B5:2 D6:4 B5:2 G5:2 A5:4' },
-  { chord: 'D',  lead: 'F#5:2 A5:2 D6:4 A5:2 F#5:2 D5:4' },
-  { chord: 'C',  lead: 'E5:2 G5:2 C6:4 B5:2 A5:2 G5:4' },
-  { chord: 'B7', lead: 'F#5:4 D#5:2 F#5:2 B5:8' },
-  { chord: 'G',  lead: 'G5:2 B5:2 D6:2 G6:2 F#6:2 D6:2 B5:4' },
-  { chord: 'D',  lead: 'A5:2 D6:2 F#6:2 A6:2 G6:2 F#6:2 D6:4' },
-  { chord: 'Am', lead: 'C6:2 B5:2 A5:2 E6:2 C6:2 A5:2 E5:4' },
-  { chord: 'B7', lead: 'D#6:4 F#6:2 D#6:2 B5:8' },
-  // ---- A': theme returns an octave up in the tail, then a cadence and a breath -------
-  { chord: 'Em', lead: 'E5:2 G5:2 B5:3 A5:1 G5:2 F#5:2 E5:4' },
-  { chord: 'C',  lead: 'C6:2 B5:2 A5:4 G5:2 A5:2 E5:4' },
-  { chord: 'D',  lead: 'F#5:2 A5:2 D6:4 C#6:1 D6:1 A5:2 F#5:4' },
-  { chord: 'Bm', lead: 'B5:6 A5:2 F#5:4 D5:4' },
-  { chord: 'Em', lead: 'E6:2 G6:2 B6:3 A6:1 G6:2 F#6:2 E6:4' },
-  { chord: 'C',  lead: 'C7:2 B6:2 A6:4 G6:2 A6:2 B6:4' },
-  { chord: 'D',  lead: 'D7:2 C#7:2 D7:2 E7:2 F#7:4 D7:4' },
-  { chord: 'B7', lead: 'D#7:2 B6:2 F#6:2 D#6:2 B5:2 F#5:2 D#5:4' },
-  { chord: 'Em', lead: 'E5:4 B5:4 E6:8' },
-  { chord: 'Em1', lead: '-:16', bass: 'rest', arp: 'rest', drums: 'rest' },
-];
+// The tune is built from named sections arranged in a song form:
+//   intro – verse 1 – chorus – verse 2 – chorus – bridge – verse 3 – chorus – outro
+const bar = (chord, lead) => ({ chord, lead });
+
+const SECTIONS = {
+  intro: {
+    bass: 'long', arp: 'soft', drums: 'none',
+    bars: [
+      bar('Em', 'E5:8 B4:8'), bar('Em', 'E5:4 G5:4 B5:8'),
+      bar('C', 'C6:8 B5:8'), bar('B7', 'D#6:8 F#6:4 B5:4'),
+    ],
+  },
+  // ---- verse: the brooding theme -------------------------------------------------------
+  verse: {
+    bass: 'bounce', arp: 'buzz', drums: 'beat',
+    bars: [
+      bar('Em', 'E5:2 G5:2 B5:3 A5:1 G5:2 F#5:2 E5:4'),
+      bar('C', 'C6:2 B5:2 A5:4 G5:2 A5:2 E5:4'),
+      bar('D', 'F#5:2 A5:2 D6:4 C#6:1 D6:1 A5:2 F#5:4'),
+      bar('Bm', 'B5:6 A5:2 F#5:4 D5:4'),
+      bar('Em', 'E5:2 G5:2 B5:3 A5:1 G5:2 F#5:2 E5:4'),
+      bar('C', 'C6:2 B5:2 A5:4 G5:2 A5:2 B5:4'),
+      bar('D', 'D6:2 C#6:2 D6:2 E6:2 F#6:4 D6:4'),
+      bar('B7', 'D#6:2 B5:2 F#5:4 D#5:2 F#5:2 B5:4'),
+      bar('G', 'G5:2 B5:2 D6:4 B5:2 G5:2 A5:4'),
+      bar('D', 'F#5:2 A5:2 D6:4 A5:2 F#5:2 D5:4'),
+      bar('C', 'E5:2 G5:2 C6:4 B5:2 A5:2 G5:4'),
+      bar('B7', 'F#5:4 D#5:2 F#5:2 B5:8'),
+      bar('G', 'G5:2 B5:2 D6:2 G6:2 F#6:2 D6:2 B5:4'),
+      bar('D', 'A5:2 D6:2 F#6:2 A6:2 G6:2 F#6:2 D6:4'),
+      bar('Am', 'C6:2 B5:2 A5:2 E6:2 C6:2 A5:2 E5:4'),
+      bar('B7', 'D#6:4 F#6:2 D#6:2 B5:8'),
+    ],
+  },
+  // ---- verse 2: same harmony, the melody ornamented and reaching higher ----------------
+  verse2: {
+    bass: 'bounce', arp: 'buzz', drums: 'beat',
+    bars: [
+      bar('Em', 'E5:1 F#5:1 G5:2 B5:2 A5:2 G5:2 F#5:2 E5:4'),
+      bar('C', 'C6:2 D6:2 E6:4 D6:2 C6:2 B5:4'),
+      bar('D', 'A5:2 D6:2 F#6:2 E6:2 D6:2 C#6:2 A5:4'),
+      bar('Bm', 'B5:4 D6:2 B5:2 A5:2 F#5:2 D5:4'),
+      bar('Em', 'E5:2 G5:2 B5:2 E6:2 D6:2 B5:2 G5:4'),
+      bar('C', 'C6:2 E6:2 G6:4 E6:2 C6:2 B5:4'),
+      bar('D', 'D6:2 E6:2 F#6:2 A6:2 G6:2 F#6:2 D6:4'),
+      bar('B7', 'D#6:2 F#6:2 B6:4 A6:2 F#6:2 D#6:4'),
+      bar('G', 'G5:2 B5:2 D6:4 B5:2 G5:2 A5:4'),
+      bar('D', 'F#5:2 A5:2 D6:4 A5:2 F#5:2 D5:4'),
+      bar('C', 'E5:2 G5:2 C6:4 B5:2 A5:2 G5:4'),
+      bar('B7', 'F#5:4 D#5:2 F#5:2 B5:8'),
+      bar('G', 'G5:2 B5:2 D6:2 G6:2 F#6:2 D6:2 B5:4'),
+      bar('D', 'A5:2 D6:2 F#6:2 A6:2 G6:2 F#6:2 D6:4'),
+      bar('Am', 'C6:2 B5:2 A5:2 E6:2 C6:2 A5:2 E5:4'),
+      bar('B7', 'D#6:4 F#6:2 D#6:2 B5:8'),
+    ],
+  },
+  // ---- verse 3: the theme an octave up, then the long fall back down -------------------
+  verse3: {
+    bass: 'bounce', arp: 'buzz', drums: 'beat',
+    bars: [
+      bar('Em', 'E6:2 G6:2 B6:3 A6:1 G6:2 F#6:2 E6:4'),
+      bar('C', 'C7:2 B6:2 A6:4 G6:2 A6:2 B6:4'),
+      bar('D', 'D7:2 C#7:2 D7:2 E7:2 F#7:4 D7:4'),
+      bar('B7', 'D#7:2 B6:2 F#6:2 D#6:2 B5:2 F#5:2 D#5:4'),
+      bar('Em', 'E5:2 G5:2 B5:3 A5:1 G5:2 F#5:2 E5:4'),
+      bar('C', 'C6:2 B5:2 A5:4 G5:2 A5:2 B5:4'),
+      bar('D', 'D6:2 C#6:2 D6:2 E6:2 F#6:4 D6:4'),
+      bar('B7', 'D#6:2 B5:2 F#5:4 D#5:2 F#5:2 B5:4'),
+      bar('G', 'G5:2 B5:2 D6:2 G6:2 F#6:2 D6:2 B5:4'),
+      bar('D', 'A5:2 D6:2 F#6:2 A6:2 G6:2 F#6:2 D6:4'),
+      bar('Am', 'C6:2 B5:2 A5:2 E6:2 C6:2 A5:2 E5:4'),
+      bar('B7', 'D#6:4 F#6:2 D#6:2 B5:8'),
+      bar('G', 'G6:2 B6:2 D7:4 B6:2 G6:2 A6:4'),
+      bar('D', 'F#6:2 A6:2 D7:4 A6:2 F#6:2 D6:4'),
+      bar('Am', 'E6:2 C6:2 A5:2 E6:2 C6:2 A5:2 E5:4'),
+      bar('B7', 'D#6:2 F#6:2 B6:4 A6:2 F#6:2 D#6:4'),
+    ],
+  },
+  // ---- chorus: the hook, punchier bass and octave-jumping arpeggio ----------------------
+  chorus: {
+    bass: 'drive', arp: 'jump', drums: 'full',
+    bars: [
+      bar('Em', 'B5:2 B5:2 E6:4 D6:2 B5:2 G5:4'),
+      bar('G', 'G5:2 G5:2 B5:4 D6:2 B5:2 G5:4'),
+      bar('D', 'A5:2 A5:2 D6:4 F#6:2 D6:2 A5:4'),
+      bar('Em', 'B5:4 G5:4 E5:8'),
+      bar('C', 'C6:2 C6:2 E6:4 G6:2 E6:2 C6:4'),
+      bar('G', 'B5:2 B5:2 D6:4 G6:2 D6:2 B5:4'),
+      bar('B7', 'D#6:4 F#6:4 B5:2 D#6:2 F#6:4'),
+      bar('Em', 'E6:12 -:4'),
+      bar('Em', 'B5:2 B5:2 E6:4 D6:2 B5:2 G5:4'),
+      bar('G', 'G5:2 G5:2 B5:4 D6:2 B5:2 G5:4'),
+      bar('D', 'A5:2 A5:2 D6:4 F#6:2 D6:2 A5:4'),
+      bar('Em', 'B5:2 D6:2 G5:4 E5:8'),
+      bar('C', 'E6:2 E6:2 G6:4 A6:2 G6:2 E6:4'),
+      bar('D', 'F#6:2 F#6:2 A6:4 D7:2 A6:2 F#6:4'),
+      bar('B7', 'D#7:2 B6:2 F#6:2 D#6:2 B5:2 F#5:2 D#5:4'),
+      bar('Em', 'E6:8 B5:4 E5:4'),
+    ],
+  },
+  // ---- bridge: the storm holds its breath ----------------------------------------------
+  bridge: {
+    bass: 'long', arp: 'soft', drums: 'none',
+    bars: [
+      bar('Am', 'A5:8 C6:4 E6:4'), bar('Em', 'B5:8 G5:4 E5:4'),
+      bar('Am', 'A5:4 C6:4 E6:8'), bar('Em', 'G5:4 F#5:4 E5:8'),
+      bar('C', 'C6:6 D6:2 E6:8'), bar('D', 'D6:6 E6:2 F#6:8'),
+      bar('B7', 'D#6:8 F#6:8'), bar('B7', 'B6:8 A6:4 F#6:4'),
+    ],
+  },
+  outro: {
+    bass: 'drive', arp: 'jump', drums: 'full',
+    bars: [
+      bar('Em', 'E6:2 D6:2 B5:2 G5:2 E5:8'), bar('C', 'C6:4 B5:4 A5:8'),
+      bar('B7', 'D#6:4 F#6:4 B6:8'), bar('Em', 'E6:12 -:4'),
+    ],
+  },
+  rest: { bass: 'none', arp: 'none', drums: 'none', bars: [bar('Em', '-:16')] },
+};
+
+const FORM = ['intro', 'verse', 'chorus', 'verse2', 'chorus', 'bridge', 'verse3', 'chorus', 'outro', 'rest'];
+
+const BASS_PATTERNS = {                       // offsets from the chord root, one per 8th note
+  bounce: [0, 12, 0, 12, 0, 12, 7, 12],
+  drive: [0, 12, 0, 12, 7, 12, 0, 12],
+  long: [0, null, null, null, 7, null, null, null],
+};
 
 function compileSong() {
   const STEPS = 16;
   const ev = { lead: [], bass: [], arp: [], drums: [] };
-  SONG.forEach((bar, bi) => {
-    const t0 = bi * STEPS;
-    const [rootName, tones] = CH[bar.chord];
-    const root = noteToMidi(rootName);
-    // lead
-    let t = t0;
-    for (const tok of bar.lead.trim().split(/\s+/)) {
-      const [n, d] = tok.split(':');
-      const dur = parseInt(d, 10);
-      if (n !== '-') ev.lead.push({ t, dur, midi: noteToMidi(n) });
-      t += dur;
-    }
-    if (bar.bass !== 'rest') {
-      // bouncing octave bass on every 8th, fifth on the last beat
-      const pat = [0, 12, 0, 12, 0, 12, 7, 12];
-      pat.forEach((off, i) => ev.bass.push({ t: t0 + i * 2, dur: 2, midi: root + off }));
-    }
-    if (bar.arp !== 'rest') {
-      // buzzing 16th-note arpeggio of chord tones, an octave and a half above the bass
-      const cyc = tones.length === 4 ? [0, 1, 2, 3] : [0, 1, 2, 1];
-      for (let i = 0; i < STEPS; i++) {
-        const off = tones[cyc[i % cyc.length]] + 24 + (i % 8 >= 4 ? 12 : 0) * 0;
-        ev.arp.push({ t: t0 + i, dur: 1, midi: root + off });
+  let bi = 0;
+  const sections = [];
+  for (const name of FORM) {
+    const sec = SECTIONS[name];
+    sections.push({ name, start: bi * STEPS, bars: sec.bars.length });
+    for (const b of sec.bars) {
+      const t0 = bi * STEPS;
+      const [rootName, tones] = CH[b.chord];
+      const root = noteToMidi(rootName);
+      let t = t0;
+      for (const tok of b.lead.trim().split(/\s+/)) {
+        const [n, d] = tok.split(':');
+        const dur = parseInt(d, 10);
+        if (n !== '-') ev.lead.push({ t, dur, midi: noteToMidi(n) });
+        t += dur;
       }
-    }
-    if (bar.drums !== 'rest') {
-      for (let i = 0; i < STEPS; i += 2) {
-        const beat = i / 4;
-        let kind = 'hat';
-        if (i === 0 || i === 8) kind = 'kick';
-        else if (i === 4 || i === 12) kind = 'snare';
-        ev.drums.push({ t: t0 + i, kind, accent: Number.isInteger(beat) });
+      if (t - t0 !== STEPS) throw new Error(`bar ${bi + 1} (${name}) has ${t - t0} steps`);
+      const bp = BASS_PATTERNS[sec.bass];
+      if (bp) bp.forEach((off, i) => {
+        if (off === null) return;
+        const dur = sec.bass === 'long' ? 8 : 2;
+        ev.bass.push({ t: t0 + i * 2, dur, midi: root + off });
+      });
+      if (sec.arp !== 'none') {
+        const cyc = tones.length === 4 ? [0, 1, 2, 3] : [0, 1, 2, 1];
+        for (let i = 0; i < STEPS; i++) {
+          if (sec.arp === 'soft' && i % 2) continue;
+          const jump = sec.arp === 'jump' && (i % 8) >= 4 ? 12 : 0;
+          ev.arp.push({ t: t0 + i, dur: sec.arp === 'soft' ? 2 : 1, midi: root + tones[cyc[i % cyc.length]] + 24 + jump });
+        }
       }
+      if (sec.drums !== 'none') {
+        for (let i = 0; i < STEPS; i += 2) {
+          let kind = 'hat';
+          if (i === 0 || i === 8) kind = 'kick';
+          else if (i === 4 || i === 12) kind = 'snare';
+          ev.drums.push({ t: t0 + i, kind, accent: i % 4 === 0 });
+        }
+        if (sec.drums === 'full') {
+          for (let i = 1; i < STEPS; i += 2) ev.drums.push({ t: t0 + i, kind: 'hat', accent: false });
+          // snare fill on the last beat of every 4th bar
+          if ((bi + 1) % 4 === 0) for (let i = 12; i < 16; i++) ev.drums.push({ t: t0 + i, kind: 'snare', accent: false });
+        }
+      }
+      bi++;
     }
-  });
-  return { events: ev, length: SONG.length * STEPS };
+  }
+  for (const k in ev) ev[k].sort((a, b) => a.t - b.t);
+  return { events: ev, length: bi * STEPS, sections };
 }
 
 class Chiptune {

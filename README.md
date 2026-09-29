@@ -5,9 +5,10 @@ A modern re-creation of the title/credits intro of *Olli & Lissa: The Ghost of S
 
 Everything is drawn and synthesized from code: the stormy sky, lightning, dead trees, rolling
 green hills, the castle with its glowing windows, the red gate with the peeking ghost, and the
-cycling credits. The music is an original chiptune written in the style of the 1986 beeper tune
+cycling credits. The music is an original three-minute chiptune written in the style of the 1986 beeper tune
 (pulse-wave lead, bouncing octave bass, buzzing arpeggio), played through the Web Audio API,
-with synthesized thunder timed to the lightning.
+with synthesized thunder timed to the lightning. It follows a song form: intro, verse,
+chorus, second verse, chorus, bridge, third verse (an octave up), chorus, outro.
 
 ## Run
 
