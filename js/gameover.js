@@ -15,7 +15,7 @@ class GameOver {
     this.active = false; this.t = 0;
     this.rng = makeRng(7);
     this.stars = [];
-    this.T_RED = 4.6; this.T_BONK = 7.4;
+    this.T_RED = 2.3; this.T_BONK = 5.1;
     this.APPROACH = 4.4; this.HITS = 5; this.HIT_GAP = 0.8; this.FIRST_HIT = this.APPROACH + 0.7;
     this.T_GO2 = this.T_BONK + this.FIRST_HIT + this.HITS * this.HIT_GAP + 2.2; this.T_END = this.T_GO2 + 2.6;
     this.done = {};
